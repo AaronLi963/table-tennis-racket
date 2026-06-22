@@ -1,0 +1,138 @@
+:root {
+  color-scheme: dark;
+  font-family: -apple-system, 'Segoe UI', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: #1e293b;
+  border-bottom: 1px solid #334155;
+}
+.brand {
+  font-size: 18px;
+  font-weight: 700;
+}
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px;
+}
+.card {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.card h2 {
+  margin-top: 0;
+  font-size: 16px;
+}
+button {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+button:hover {
+  background: #1d4ed8;
+}
+button:disabled {
+  background: #475569;
+  cursor: not-allowed;
+}
+button.danger {
+  background: #dc2626;
+}
+button.secondary {
+  background: #334155;
+}
+input,
+select {
+  background: #0f172a;
+  border: 1px solid #475569;
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: #e2e8f0;
+  font-size: 14px;
+}
+label {
+  font-size: 13px;
+  color: #94a3b8;
+  display: block;
+  margin-bottom: 4px;
+}
+.row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+.scoreGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.scoreBox {
+  background: #0f172a;
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+}
+.scoreBox .val {
+  font-size: 34px;
+  font-weight: 800;
+}
+.scoreBox .label {
+  margin: 0;
+  color: #94a3b8;
+}
+.muted {
+  color: #94a3b8;
+  font-size: 13px;
+}
+.warn {
+  background: #422006;
+  border: 1px solid #a16207;
+  color: #fde68a;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  margin: 6px 0;
+}
+.featTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.featTable td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #334155;
+}
+.featTable td:last-child {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #7c2d12;
+  color: #fed7aa;
+  margin-left: 6px;
+}

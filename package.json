@@ -1,0 +1,22 @@
+{
+  "name": "table-tennis-racket",
+  "version": "0.1.0",
+  "private": true,
+  "description": "敲擊桌球拍面材中心的聲音，分析球拍軟硬度、彈性與底勁",
+  "type": "module",
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "dev:web": "pnpm --filter @ttr/web dev",
+    "dev:api": "pnpm --filter @ttr/api dev",
+    "dev": "pnpm --parallel --filter @ttr/web --filter @ttr/api dev",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20"
+  }
+}

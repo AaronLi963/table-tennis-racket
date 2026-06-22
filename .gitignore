@@ -1,0 +1,15 @@
+node_modules/
+dist/
+build/
+*.log
+.DS_Store
+.env
+.env.local
+coverage/
+# SQLite 本機資料庫（執行時自動建立）
+apps/api/data/
+*.tsbuildinfo
+.vite/
+
+# Claude Code 本機設定（個人，不進版控）
+.claude/settings.local.json
