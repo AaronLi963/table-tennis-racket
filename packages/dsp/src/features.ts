@@ -7,9 +7,14 @@ export const ANALYSIS_BAND = { min: 150, max: 8000 } as const;
 /** 區分「低頻 / 高頻」能量的界線 (Hz) */
 export const LOW_HIGH_SPLIT_HZ = 1500;
 
+/** 顯著模態的判定門檻：幅度需 ≥ 最強峰的此比例 */
+const MODE_PROMINENCE = 0.15;
+
 export interface SpectralFeatures {
   f0: number;
   modes: ModePeak[];
+  /** 顯著模態頻率，依頻率升冪（f1, f2, …） */
+  modalFreqs: number[];
   spectralCentroid: number;
   spectralSpread: number;
   lowHighEnergyRatio: number;
@@ -58,8 +63,15 @@ export function extractSpectralFeatures(
   fftSize: number,
   sampleRate: number,
 ): SpectralFeatures {
-  const peaks = findPeaks(mag, fftSize, sampleRate, 6);
+  const peaks = findPeaks(mag, fftSize, sampleRate, 8);
   const f0 = peaks.length > 0 ? peaks[0].freq : 0;
+
+  // 顯著模態（幅度夠大者）依頻率升冪 → f1, f2, … 供質量修正剛度使用
+  const maxMag = f0 > 0 ? peaks[0].magnitude : 0;
+  const modalFreqs = peaks
+    .filter((p) => p.magnitude >= maxMag * MODE_PROMINENCE)
+    .map((p) => p.freq)
+    .sort((a, b) => a - b);
 
   const binMin = Math.max(1, Math.floor((ANALYSIS_BAND.min * fftSize) / sampleRate));
   const binMax = Math.min(mag.length - 1, Math.ceil((ANALYSIS_BAND.max * fftSize) / sampleRate));
@@ -93,6 +105,7 @@ export function extractSpectralFeatures(
   return {
     f0,
     modes: peaks,
+    modalFreqs,
     spectralCentroid: centroid,
     spectralSpread: spread,
     lowHighEnergyRatio,

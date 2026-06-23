@@ -62,13 +62,15 @@ button.secondary {
   background: #334155;
 }
 input,
-select {
+select,
+textarea {
   background: #0f172a;
   border: 1px solid #475569;
   border-radius: 8px;
   padding: 8px 10px;
   color: #e2e8f0;
   font-size: 14px;
+  font-family: inherit;
 }
 label {
   font-size: 13px;
@@ -104,6 +106,19 @@ label {
 .muted {
   color: #94a3b8;
   font-size: 13px;
+}
+.defList {
+  margin: 4px 0 12px;
+  padding-left: 18px;
+  font-size: 13px;
+  color: #cbd5e1;
+  line-height: 1.7;
+}
+.defList li {
+  margin-bottom: 4px;
+}
+.defList b {
+  color: #e2e8f0;
 }
 .warn {
   background: #422006;

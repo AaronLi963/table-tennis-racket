@@ -5,6 +5,7 @@ import type {
   PopulationStats,
   QualityMetrics,
   Racket,
+  RacketInput,
   Scores,
 } from '@ttr/shared';
 
@@ -31,6 +32,9 @@ export interface CompareEntry {
   id: string;
   name?: string;
   brand?: string | null;
+  structure?: string | null;
+  weight?: number | null;
+  tags?: string[];
   features: FeatureVector | null;
   scores: Scores | null;
   error?: string;
@@ -44,8 +48,10 @@ export interface PopulationResponse {
 export const api = {
   listRackets: () => req<Racket[]>('/rackets'),
   getRacket: (id: string) => req<RacketDetail>(`/rackets/${id}`),
-  createRacket: (input: { name: string; brand?: string; composition?: string }) =>
+  createRacket: (input: RacketInput & { name: string }) =>
     req<Racket>('/rackets', { method: 'POST', body: JSON.stringify(input) }),
+  updateRacket: (id: string, patch: RacketInput) =>
+    req<Racket>(`/rackets/${id}`, { method: 'PATCH', body: JSON.stringify(patch) }),
   createMeasurement: (input: {
     racketId: string;
     features: FeatureVector;

@@ -140,6 +140,9 @@ export function ComparePage() {
               <tr>
                 <td>球拍</td>
                 <td>品牌</td>
+                <td>結構</td>
+                <td>重量</td>
+                <td>標籤</td>
                 <td>軟硬度</td>
                 <td>彈性</td>
                 <td>底勁</td>
@@ -152,6 +155,9 @@ export function ComparePage() {
                 <tr key={e.id}>
                   <td>{e.name ?? e.id}</td>
                   <td>{e.brand ?? '—'}</td>
+                  <td>{e.structure ?? '—'}</td>
+                  <td>{e.weight != null ? `${e.weight} g` : '—'}</td>
+                  <td>{e.tags && e.tags.length > 0 ? e.tags.join('、') : '—'}</td>
                   <td>{e.scores ? e.scores.hardness.toFixed(0) : '—'}</td>
                   <td>{e.scores ? e.scores.elasticity.toFixed(0) : '—'}</td>
                   <td>{e.scores ? e.scores.lowEndSupport.toFixed(0) : '—'}</td>

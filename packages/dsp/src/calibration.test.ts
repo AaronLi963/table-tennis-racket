@@ -6,6 +6,7 @@ function feat(f0: number, q: number, ratio: number): FeatureVector {
   return {
     f0,
     modes: [],
+    modalFreqs: [f0],
     spectralCentroid: f0 * 1.2,
     spectralSpread: 300,
     lowHighEnergyRatio: ratio,

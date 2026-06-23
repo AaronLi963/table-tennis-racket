@@ -15,6 +15,10 @@ interface RacketRow {
   name: string;
   brand: string | null;
   composition: string | null;
+  structure: string | null;
+  weight: number | null;
+  tags: string | null;
+  notes: string | null;
   knownScores: string | null;
   createdAt: string;
 }
@@ -34,6 +38,10 @@ function rowToRacket(r: RacketRow): Racket {
     name: r.name,
     brand: r.brand,
     composition: r.composition,
+    structure: r.structure,
+    weight: r.weight,
+    tags: parseJson<string[]>(r.tags) ?? [],
+    notes: r.notes,
     knownScores: parseJson<Scores>(r.knownScores),
     createdAt: r.createdAt,
   };
@@ -56,28 +64,82 @@ export function createRacket(input: {
   name: string;
   brand?: string | null;
   composition?: string | null;
-  knownScores?: Scores | null;
+  structure?: string | null;
+  weight?: number | null;
+  tags?: string[];
+  notes?: string | null;
 }): Racket {
   const racket: Racket = {
     id: randomUUID(),
     name: input.name,
     brand: input.brand ?? null,
     composition: input.composition ?? null,
-    knownScores: input.knownScores ?? null,
+    structure: input.structure ?? null,
+    weight: input.weight ?? null,
+    tags: input.tags ?? [],
+    notes: input.notes ?? null,
+    knownScores: null,
     createdAt: new Date().toISOString(),
   };
   db.prepare(
-    `INSERT INTO rackets (id, name, brand, composition, knownScores, createdAt)
-     VALUES (?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO rackets (id, name, brand, composition, structure, weight, tags, notes, createdAt)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   ).run(
     racket.id,
     racket.name,
     racket.brand ?? null,
     racket.composition ?? null,
-    racket.knownScores ? JSON.stringify(racket.knownScores) : null,
+    racket.structure ?? null,
+    racket.weight ?? null,
+    racket.tags && racket.tags.length > 0 ? JSON.stringify(racket.tags) : null,
+    racket.notes ?? null,
     racket.createdAt,
   );
   return racket;
+}
+
+/** 更新球拍可編輯欄位（只更新有提供的欄位）。 */
+export function updateRacket(
+  id: string,
+  patch: {
+    name?: string;
+    brand?: string | null;
+    composition?: string | null;
+    structure?: string | null;
+    weight?: number | null;
+    tags?: string[];
+    notes?: string | null;
+  },
+): Racket | null {
+  const existing = getRacket(id);
+  if (!existing) return null;
+
+  const merged = {
+    name: patch.name ?? existing.name,
+    brand: patch.brand !== undefined ? patch.brand : (existing.brand ?? null),
+    composition:
+      patch.composition !== undefined ? patch.composition : (existing.composition ?? null),
+    structure: patch.structure !== undefined ? patch.structure : (existing.structure ?? null),
+    weight: patch.weight !== undefined ? patch.weight : (existing.weight ?? null),
+    tags: patch.tags !== undefined ? patch.tags : (existing.tags ?? []),
+    notes: patch.notes !== undefined ? patch.notes : (existing.notes ?? null),
+  };
+
+  db.prepare(
+    `UPDATE rackets
+     SET name = ?, brand = ?, composition = ?, structure = ?, weight = ?, tags = ?, notes = ?
+     WHERE id = ?`,
+  ).run(
+    merged.name,
+    merged.brand,
+    merged.composition,
+    merged.structure,
+    merged.weight,
+    merged.tags.length > 0 ? JSON.stringify(merged.tags) : null,
+    merged.notes,
+    id,
+  );
+  return getRacket(id);
 }
 
 export function listRackets(): Racket[] {

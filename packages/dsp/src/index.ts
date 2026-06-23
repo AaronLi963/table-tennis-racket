@@ -24,4 +24,4 @@ export {
   applyCalibration,
   type TrainingSample,
 } from './calibration.js';
-export { fitPopulation, scoreWithPopulation } from './autoScore.js';
+export { fitPopulation, scoreWithPopulation, type RacketSample } from './autoScore.js';

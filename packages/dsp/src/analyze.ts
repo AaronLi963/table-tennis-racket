@@ -110,6 +110,7 @@ function computeFeatures(
   const features: FeatureVector = {
     f0: spectral.f0,
     modes: spectral.modes,
+    modalFreqs: spectral.modalFreqs,
     spectralCentroid: spectral.spectralCentroid,
     spectralSpread: spectral.spectralSpread,
     lowHighEnergyRatio: spectral.lowHighEnergyRatio,

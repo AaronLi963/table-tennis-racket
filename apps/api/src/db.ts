@@ -20,6 +20,10 @@ db.exec(`
     name        TEXT NOT NULL,
     brand       TEXT,
     composition TEXT,
+    structure   TEXT,             -- 纖維結構：外置 / 內置 / 純木 / 自訂
+    weight      REAL,             -- 公克
+    tags        TEXT,             -- JSON string[]
+    notes       TEXT,
     knownScores TEXT,            -- JSON Scores | null
     createdAt   TEXT NOT NULL
   );
@@ -41,6 +45,18 @@ db.exec(`
 
   CREATE INDEX IF NOT EXISTS idx_measurements_racket ON measurements(racketId);
 `);
+
+/** 對既有資料庫補上後來新增的欄位（node:sqlite 不支援 ADD COLUMN IF NOT EXISTS）。 */
+function ensureColumn(table: string, column: string, ddl: string): void {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all() as unknown as { name: string }[];
+  if (!cols.some((c) => c.name === column)) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${ddl}`);
+  }
+}
+ensureColumn('rackets', 'structure', 'TEXT');
+ensureColumn('rackets', 'weight', 'REAL');
+ensureColumn('rackets', 'tags', 'TEXT');
+ensureColumn('rackets', 'notes', 'TEXT');
 
 /** JSON 欄位 parse 小工具 */
 export function parseJson<T>(value: unknown): T | null {

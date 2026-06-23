@@ -55,10 +55,16 @@ export interface ModePeak {
 
 /** 一次敲擊萃取出的物理特徵向量 */
 export interface FeatureVector {
-  /** 基頻 / 主共振頻率 (Hz) — 對應軟硬度 */
+  /** 基頻 / 主共振頻率 (Hz) — 最強的峰 */
   f0: number;
   /** 其他模態峰（依幅度排序） */
   modes: ModePeak[];
+  /**
+   * 依頻率升冪排列的顯著模態頻率 (Hz)。
+   * modalFreqs[0] ≈ 一階模態 f1，modalFreqs[3] ≈ 四階模態 f4。
+   * 用於質量修正剛度 E1 / E4（參考 踢猫Boll「我量化了乒乓球底板性能」）。
+   */
+  modalFreqs: number[];
   /** 頻譜質心 (Hz) */
   spectralCentroid: number;
   /** 頻譜擴散（標準差，Hz） */
@@ -105,10 +111,32 @@ export interface Racket {
   brand?: string | null;
   /** 結構描述，例如 "5+2 ALC" */
   composition?: string | null;
+  /** 纖維結構，例如 外置 / 內置 / 純木（可自由新增），未填為 null */
+  structure?: string | null;
+  /** 重量 (公克)，未填為 null */
+  weight?: number | null;
+  /** 標籤（自由分類，例如 "進攻"、"已貼皮"） */
+  tags?: string[];
+  /** 備註 */
+  notes?: string | null;
   /** 使用者輸入的已知真實特性（用於校正），未知則為 null */
   knownScores?: Scores | null;
   createdAt: string;
 }
+
+/** 建立 / 更新球拍時可帶的可編輯欄位 */
+export interface RacketInput {
+  name?: string;
+  brand?: string | null;
+  composition?: string | null;
+  structure?: string | null;
+  weight?: number | null;
+  tags?: string[];
+  notes?: string | null;
+}
+
+/** 結構欄位的預設選項；UI 會再合併使用者已輸入過的其他值 */
+export const DEFAULT_STRUCTURES = ['外置', '內置', '純木'] as const;
 
 export interface Measurement {
   id: string;
@@ -166,13 +194,19 @@ export interface FeatureStats {
 }
 
 /**
- * 收藏的母體統計。新球拍的分數即是其特徵相對於此分布的標準分數（z-score）。
+ * 收藏的母體統計。新球拍的分數即是其指標相對於此分布的標準分數（z-score）。
+ * 指標採質量修正剛度：E ∝ f²·m（兩個振動模態 E1 / E4）與品質因子 Q。
  * 樣本越多，相對分數越穩定。
  */
 export interface PopulationStats {
   /** 參與評分的球拍數（每支取最新一次量測） */
   sampleCount: number;
-  f0: FeatureStats;
+  /** 缺重量的球拍以此重量 (g) 代入（收藏的中位數，否則預設值） */
+  fallbackWeight: number;
+  /** 一階質量修正剛度 E1 = f1²·m 的分布 → 軟硬度 */
+  e1: FeatureStats;
+  /** 高階質量修正剛度 E4 = f4²·m 的分布 → 底勁 */
+  e4: FeatureStats;
+  /** 品質因子 Q 的分布 → 彈性 */
   q: FeatureStats;
-  lowHighEnergyRatio: FeatureStats;
 }

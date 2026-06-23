@@ -5,12 +5,21 @@ import { api } from '../api.ts';
 import { MicRecorder, decodeAudioFile } from '../audio/webAudioSource.ts';
 import { SpectrumChart, DecayChart } from '../components/Charts.tsx';
 import { ScoreCards, FeatureTable, QualityWarnings } from '../components/Report.tsx';
+import {
+  EMPTY_META,
+  RacketMetaFields,
+  metaToInput,
+  racketToMeta,
+  structureOptionsFrom,
+  type RacketMeta,
+} from '../components/RacketMetaFields.tsx';
 
 export function MeasurePage() {
   const [rackets, setRackets] = useState<Racket[]>([]);
   const [racketId, setRacketId] = useState('');
   const [newName, setNewName] = useState('');
-  const [newBrand, setNewBrand] = useState('');
+  const [newMeta, setNewMeta] = useState<RacketMeta>(EMPTY_META);
+  const [editMeta, setEditMeta] = useState<RacketMeta>(EMPTY_META);
   const [recording, setRecording] = useState(false);
   const [viz, setViz] = useState<VizResult | null>(null);
   const [population, setPopulation] = useState<PopulationStats | null>(null);
@@ -19,10 +28,25 @@ export function MeasurePage() {
   const [busy, setBusy] = useState(false);
   const recorder = useRef(new MicRecorder());
 
+  const selectedRacket = rackets.find((r) => r.id === racketId) ?? null;
+  const structureOptions = structureOptionsFrom(rackets);
+
+  /** 評分用的重量：優先用編輯表單中正在輸入的值，否則用已存的值 */
+  function currentWeight(): number | null {
+    const typed = editMeta.weight.trim();
+    if (typed !== '') return Number(typed);
+    return selectedRacket?.weight ?? null;
+  }
+
   useEffect(() => {
     void refresh();
     void loadPopulation();
   }, []);
+
+  // 切換選取的球拍時，載入它的可編輯資料到編輯表單
+  useEffect(() => {
+    setEditMeta(selectedRacket ? racketToMeta(selectedRacket) : EMPTY_META);
+  }, [racketId, rackets]);
 
   async function refresh() {
     const list = await api.listRackets();
@@ -39,7 +63,7 @@ export function MeasurePage() {
   function runAnalysis(pcm: Float32Array, sampleRate: number) {
     const result = analyzeForViz({ pcm, sampleRate });
     setViz(result);
-    setScores(population ? scoreWithPopulation(population, result.features) : null);
+    setScores(population ? scoreWithPopulation(population, result.features, currentWeight()) : null);
     setMsg('');
   }
 
@@ -77,14 +101,25 @@ export function MeasurePage() {
 
   async function createRacket() {
     if (!newName.trim()) return;
-    const r = await api.createRacket({
-      name: newName.trim(),
-      brand: newBrand.trim() || undefined,
-    });
+    const r = await api.createRacket({ name: newName.trim(), ...metaToInput(newMeta) });
     setNewName('');
-    setNewBrand('');
+    setNewMeta(EMPTY_META);
     await refresh();
     setRacketId(r.id);
+  }
+
+  async function saveRacketEdits() {
+    if (!selectedRacket) return;
+    setBusy(true);
+    try {
+      await api.updateRacket(selectedRacket.id, metaToInput(editMeta));
+      await refresh();
+      setMsg(`✅ 已更新「${selectedRacket.name}」的資料。`);
+    } catch (err) {
+      setMsg(`更新失敗：${(err as Error).message}`);
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function save() {
@@ -98,7 +133,7 @@ export function MeasurePage() {
       });
       // 新量測會改變收藏分布 → 重新載入母體統計並更新相對分數
       const stats = await loadPopulation();
-      setScores(stats ? scoreWithPopulation(stats, viz.features) : null);
+      setScores(stats ? scoreWithPopulation(stats, viz.features, currentWeight()) : null);
       setMsg('✅ 已儲存量測。相對分數已依最新收藏更新。');
     } catch (err) {
       setMsg(`儲存失敗：${(err as Error).message}`);
@@ -124,23 +159,52 @@ export function MeasurePage() {
               ))}
             </select>
           </div>
-          <div>
-            <label>或新增一支</label>
-            <input
-              placeholder="球拍名稱"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
+        </div>
+
+        {selectedRacket && (
+          <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #334155' }}>
+            <label style={{ marginBottom: 8 }}>編輯「{selectedRacket.name}」的資料</label>
+            <div className="row">
+              <RacketMetaFields
+                meta={editMeta}
+                onChange={setEditMeta}
+                structureOptions={structureOptions}
+              />
+            </div>
+            <button
+              className="secondary"
+              style={{ marginTop: 12 }}
+              onClick={saveRacketEdits}
+              disabled={busy}
+            >
+              💾 儲存球拍資料
+            </button>
+          </div>
+        )}
+
+        <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #334155' }}>
+          <label style={{ marginBottom: 8 }}>或新增一支球拍</label>
+          <div className="row">
+            <div>
+              <label>名稱（必填）</label>
+              <input
+                placeholder="球拍名稱"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+              />
+            </div>
+            <RacketMetaFields
+              meta={newMeta}
+              onChange={setNewMeta}
+              structureOptions={structureOptions}
             />
           </div>
-          <div>
-            <label>品牌（選填）</label>
-            <input
-              placeholder="例如 Butterfly"
-              value={newBrand}
-              onChange={(e) => setNewBrand(e.target.value)}
-            />
-          </div>
-          <button className="secondary" onClick={createRacket} disabled={!newName.trim()}>
+          <button
+            className="secondary"
+            style={{ marginTop: 12 }}
+            onClick={createRacket}
+            disabled={!newName.trim()}
+          >
             新增
           </button>
         </div>
